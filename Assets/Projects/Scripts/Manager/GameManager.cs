@@ -4,15 +4,34 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [Header("Manager")]
+    public TileManager tileManager;
+    public UIManager uiManager;
+
+    public ObserverManager observerManager;
+    public GameRunner gameRunner;
+
+    void Awake()
     {
-        
+        observerManager = new ObserverManager();
+        gameRunner = FindObjectOfType<GameRunner>();
+        tileManager = FindObjectOfType<TileManager>();
+        uiManager = FindObjectOfType<UIManager>();
+
+        uiManager.OnAwake(observerManager);
+        tileManager.OnAwake(observerManager.tileTouchingObserver, observerManager);
+        gameRunner.OnAwake(tileManager, uiManager, observerManager);
     }
 
-    // Update is called once per frame
+    void Start()
+    {
+        gameRunner.OnStart();
+    }
+
     void Update()
     {
-        
+        var smoothDeltaTime = Time.smoothDeltaTime;
+        gameRunner.OnUpdate(smoothDeltaTime);
+        tileManager.OnUpdate(smoothDeltaTime);
     }
 }

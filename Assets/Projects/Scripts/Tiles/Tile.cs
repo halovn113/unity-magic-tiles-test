@@ -1,18 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-public class Tile : MonoBehaviour
+public class Tile : MonoBehaviour, IPointerDownHandler
 {
-    // Start is called before the first frame update
-    void Start()
+    private TileTouchingObserver tileTouchingObserver;
+    public void OnAwake(TileTouchingObserver tileTouchingObserver)
     {
-        
+        this.tileTouchingObserver = tileTouchingObserver;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ResetTile()
     {
-        
+        if (ColorUtility.TryParseHtmlString(ColorTile.Normal, out Color color))
+        {
+            GetComponent<Image>().color = color;
+        }
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        tileTouchingObserver.Notify(new TileTouchingData()
+        {
+            tilePosition = transform.position,
+            tile = this
+        });
     }
 }
