@@ -70,5 +70,6 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
     {
         score = 0;
         currentComboIndex = -1;
+        comboCount = 0;
     }
 }
