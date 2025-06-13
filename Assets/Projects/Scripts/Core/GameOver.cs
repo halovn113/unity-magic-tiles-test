@@ -10,6 +10,8 @@ public class GameOver : MonoBehaviour
     public CanvasGroup canvasGroup;
     public TextMeshProUGUI textScore;
     public TextMeshProUGUI textResult;
+    public TextMeshProUGUI textResultTimingInfo;
+
     public Button buttonReplay;
 
     public void OnAwake(ObserverManager observerManager, GameManager gameManager)
@@ -25,14 +27,18 @@ public class GameOver : MonoBehaviour
         });
     }
 
-    public void ShowGameOver(int score, bool win)
+    public void ShowGameOver(int score, bool win, int[] timingResultInfos)
     {
         canvasGroup.alpha = 0;
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
         textResult.text = win ? Text.Win : Text.Lose;
         textScore.text = score.ToString();
-
+        textResultTimingInfo.text = "";
+        for (int i = 0; i < timingResultInfos.Length; i++)
+        {
+            textResultTimingInfo.text += Text.TimingTexts[i] + " : " + timingResultInfos[i].ToString() + "\n";
+        }
         Tween.Alpha(canvasGroup, 1f, 0.5f);
     }
 }

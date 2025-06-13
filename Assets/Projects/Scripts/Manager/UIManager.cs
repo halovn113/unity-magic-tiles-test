@@ -11,6 +11,7 @@ public class UIManager : MonoBehaviour, IObservable<TileScoreData>
 
     [Header("Progress")]
     public ProgressBar progressBar;
+    private Sequence sequenceTextCombo;
 
     public void OnAwake(ObserverManager observerManager)
     {
@@ -20,10 +21,23 @@ public class UIManager : MonoBehaviour, IObservable<TileScoreData>
 
     public void UpdateResult(string resultTiming)
     {
+        textResultTiming.transform.localScale = Vector3.one;
         if (resultTiming != Text.TimingTexts[Text.TimingTexts.Length - 1])
         {
             float scale = resultTiming == Text.TimingTexts[0] ? 1.2f : 1.1f;
             Sequence.Create().Chain(Tween.Scale(textResultTiming.transform, scale, 0.2f)).Chain(Tween.Scale(textResultTiming.transform, 1f, 0.5f));
+        }
+        if (resultTiming == Text.TimingTexts[0])
+        {
+            textResultTiming.color = Color.yellow;
+        }
+        else if (resultTiming == Text.TimingTexts[1])
+        {
+            textResultTiming.color = Color.green;
+        }
+        else
+        {
+            textResultTiming.color = Color.white;
         }
         textResultTiming.text = resultTiming;
     }
@@ -43,8 +57,10 @@ public class UIManager : MonoBehaviour, IObservable<TileScoreData>
         {
             return;
         }
+        sequenceTextCombo.Stop();
         textCombo.alpha = 0;
-        Sequence.Create().Chain(Tween.Alpha(textCombo, 1, 0.5f)).Chain(Tween.Scale(textCombo.transform, 1.1f, 0.2f))
+        textCombo.transform.localScale = Vector3.one;
+        sequenceTextCombo = Sequence.Create().Chain(Tween.Alpha(textCombo, 1, 0.5f)).Chain(Tween.Scale(textCombo.transform, 1.1f, 0.2f))
         .Chain(Tween.Scale(textCombo.transform, 1f, 0.5f)).Chain(Tween.Alpha(textCombo, 0, 0.5f));
         textCombo.text = "X" + combo.ToString();
     }

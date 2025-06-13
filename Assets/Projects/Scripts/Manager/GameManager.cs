@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
                 gameRunner.ResetGame();
                 break;
             case GameState.GameOver:
-                gameOver.ShowGameOver(gameRunner.scoreBehaviour.score, gameRunner.IsWin());
+                gameOver.ShowGameOver(gameRunner.scoreBehaviour.score, gameRunner.IsWin(), gameRunner.scoreBehaviour.GetTimingResultInfos());
                 break;
         }
     }

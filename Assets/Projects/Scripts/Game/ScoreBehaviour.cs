@@ -16,12 +16,17 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
     private ObserverManager observerManager;
     private Vector3 touchPosition;
     private int currentComboIndex;
-
+    private int[] timingResultInfo;
     public void OnAwake(ObserverManager observerManager, UIManager uiManager, Vector3 touchPosition)
     {
         this.observerManager = observerManager;
         this.uiManager = uiManager;
         this.touchPosition = touchPosition;
+        timingResultInfo = new int[Text.TimingTexts.Length];
+        for (int i = 0; i < timingResultInfo.Length; i++)
+        {
+            timingResultInfo[i] = 0;
+        }
 
         observerManager.tileTouchingObserver.AddObservable(this);
     }
@@ -31,6 +36,7 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
         float distanceToTouchZone = value.tilePosition.y - touchPosition.y;
 
         var scoreTextIndex = Text.TimingTexts.Length - 1;
+        var resultScore = 0;
         for (int i = 0; i < timeThresholds.Length; i++)
         {
             if (distanceToTouchZone <= timeThresholds[i])
@@ -39,6 +45,7 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
                 break;
             }
         }
+        timingResultInfo[scoreTextIndex] += 1;
 
         if (scoreTextIndex != Text.TimingTexts.Length - 1)
         {
@@ -56,8 +63,10 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
             comboCount = 0;
         }
 
+        resultScore = scoreTextIndex == Text.TimingTexts.Length - 1 ? 0 :
+                    scoreThresholds[scoreTextIndex] + comboThresholds[Mathf.Min(comboCount, comboThresholds.Length - 1)];
         currentComboIndex = scoreTextIndex;
-        score += scoreThresholds[scoreTextIndex] + comboThresholds[Mathf.Max(0, comboThresholds.Length - 1)];
+        score += resultScore;
         observerManager.tileScoreObserver.Notify(new TileScoreData()
         {
             scoreIndex = scoreTextIndex,
@@ -71,5 +80,14 @@ public class ScoreBehaviour : MonoBehaviour, IObservable<TileTouchingData>
         score = 0;
         currentComboIndex = -1;
         comboCount = 0;
+        for (int i = 0; i < timingResultInfo.Length; i++)
+        {
+            timingResultInfo[i] = 0;
+        }
+    }
+
+    public int[] GetTimingResultInfos()
+    {
+        return timingResultInfo;
     }
 }
