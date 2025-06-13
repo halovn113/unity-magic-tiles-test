@@ -10,4 +10,5 @@ public class TileScoreData
 {
     public int scoreIndex;
     public int score;
+    public int comboCount;
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameRunner : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class GameRunner : MonoBehaviour
 
     [Header("Game Objects")]
     public Transform topPoint, touchPoint;
+    public Button buttonPlay;
 
     [Header("Setting")]
     [SerializeField]
@@ -22,24 +24,55 @@ public class GameRunner : MonoBehaviour
     [SerializeField]
     private int currentNoteIndex = 0;
 
-    // ========================= //
     private ListSongInfo listSongInfo;
     private float interval;
+    private float timer;
+    private float totalTime;
     private TileManager tileManager;
     private UIManager uiManager;
+    private string selectedSongID;
+    private GameManager gameManager;
+    private bool isWin;
+    private bool canSpawn;
 
-    public void OnAwake(TileManager tileManager, UIManager uiManager, ObserverManager observerManager)
+    public void OnAwake(TileManager tileManager, UIManager uiManager, ObserverManager observerManager, GameManager gameManager)
     {
         this.tileManager = tileManager;
         this.uiManager = uiManager;
+        this.gameManager = gameManager;
         scoreBehaviour = FindObjectOfType<ScoreBehaviour>();
         scoreBehaviour.OnAwake(observerManager, uiManager, touchPoint.transform.position);
         ReadData();
+        selectedSongID = listSongInfo.Data[0].songID;
+        buttonPlay.gameObject.SetActive(true);
+        buttonPlay.onClick.AddListener(OnClickStart);
+        ResetGame();
+    }
+
+    public void OnClickStart()
+    {
+        StartGame(selectedSongID);
     }
 
     public void OnStart()
     {
-        StartGame("0");
+
+    }
+
+    public void ResetGame()
+    {
+        currentNoteIndex = 0;
+        currentSongInfo = null;
+        interval = 0;
+        timer = 0;
+        totalTime = 0;
+        isWin = false;
+
+        uiManager.UpdateProgress(0);
+        tileManager.ResetPool();
+        uiManager.ResetInfo();
+        buttonPlay.gameObject.SetActive(true);
+        scoreBehaviour.ResetScore();
     }
 
     public void OnUpdate(float smoothDeltaTime)
@@ -62,15 +95,25 @@ public class GameRunner : MonoBehaviour
             float currentNoteTime = currentSongInfo.noteTimes[currentNoteIndex] - currentSongInfo.tempo;
             if (interval >= currentNoteTime)
             {
-                SpawnTile();
-                if (currentNoteIndex < currentSongInfo.noteTimes.Length - 1)
+                if (canSpawn)
                 {
-                    currentNoteIndex++;
+                    SpawnTile();
+                    if (currentNoteIndex < currentSongInfo.noteTimes.Length - 1)
+                    {
+                        currentNoteIndex++;
+                    }
+                    else
+                    {
+                        canSpawn = false;
+                    }
                 }
-                else
-                {
-                    isPlaying = false;
-                }
+            }
+
+            timer += smoothDeltaTime;
+            uiManager.UpdateProgress(timer / totalTime);
+            if (timer >= totalTime)
+            {
+                GameOver(true);
             }
         }
     }
@@ -82,7 +125,7 @@ public class GameRunner : MonoBehaviour
 
     public void StartGame(string songID)
     {
-        currentNoteIndex = 0;
+        buttonPlay.gameObject.SetActive(false);
         audioSource.clip = musicInfoSO.GetAudioClip(songID);
         currentSongInfo = listSongInfo.GetSongInfo(songID);
         if (currentSongInfo == null)
@@ -94,8 +137,10 @@ public class GameRunner : MonoBehaviour
         {
             interval = currentSongInfo.noteTimes[0] - currentSongInfo.tempo;
         }
+        totalTime += currentSongInfo.tempo + audioSource.clip.length;
         tileManager.fallSpeed = (touchPoint.position.y - topPoint.position.y) / currentSongInfo.tempo;
         isPlaying = true;
+        canSpawn = true;
     }
 
     public void SpawnTile()
@@ -106,6 +151,19 @@ public class GameRunner : MonoBehaviour
     public void PlaySong()
     {
         audioSource.Play();
+    }
+
+    public void GameOver(bool win)
+    {
+        isPlaying = false;
+        isWin = win;
+        audioSource.Stop();
+        gameManager.ChangeState(GameState.GameOver);
+    }
+
+    public bool IsWin()
+    {
+        return isWin;
     }
 }
 
